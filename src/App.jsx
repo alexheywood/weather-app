@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { IoLocationSharp } from "react-icons/io5";
 import Forecast from "./Forecast";
 import GridLoader from "react-spinners/GridLoader";
+import { postcodeValidator } from "postcode-validator";
 
 function App() {
   const [bgColour, setBgColour] = useState("#1F2041");
@@ -55,13 +56,21 @@ function App() {
       setEdit(false);
       return;
     }
-    setLoading(true);
-    setLocation(postcodeInput.current.value.trim());
-    setEdit(false);
+
+    if (postcodeValidator(postcodeInput.current.value, "GB")) {
+      setLoading(true);
+      setLocation(postcodeInput.current.value.trim());
+      setEdit(false);
+    } else {
+      alert("Please input a valid UK postcode.");
+      postcodeInput.current.style.color = "red";
+    }
   };
 
   async function getForecast() {
-    const url = `https://api.weatherapi.com/v1/forecast.json?q=${location}&days=5&key=KEY_HERE}`;
+    const url = `https://api.weatherapi.com/v1/forecast.json?q=${location}&days=5&key=${
+      import.meta.env.VITE_API_KEY
+    }`;
     try {
       const response = await fetch(url);
       if (!response.ok) {
@@ -122,24 +131,7 @@ function App() {
                   <IoLocationSharp color="white" size={30} />
                 </button>
 
-                {edit ? (
-                  <div className="container text-center">
-                    <input
-                      ref={postcodeInput}
-                      placeholder="Enter postcode"
-                      className="mx-3 w-60 p-2"
-                      type="text"
-                    ></input>
-                    <button
-                      className="p-2 btn btn-outline-light"
-                      onClick={() => {
-                        updateLocation();
-                      }}
-                    >
-                      Save
-                    </button>
-                  </div>
-                ) : null}
+                {edit ? <div className="container text-center"></div> : null}
 
                 {!edit ? (
                   <button
@@ -150,7 +142,25 @@ function App() {
                   >
                     Edit
                   </button>
-                ) : null}
+                ) : (
+                  <>
+                    <input
+                      ref={postcodeInput}
+                      placeholder="Enter postcode"
+                      className="mx-2 p-2 bg-none rounded"
+                      type="text"
+                      style={{ backgroundColor: "white" }}
+                    ></input>
+                    <button
+                      className="p-2 btn btn-outline-light"
+                      onClick={() => {
+                        updateLocation();
+                      }}
+                    >
+                      Save
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="mb-5 container text-center align-middle">
